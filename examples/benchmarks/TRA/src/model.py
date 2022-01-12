@@ -484,7 +484,7 @@ class TRA(nn.Module):
 
     """Temporal Routing Adaptor (TRA)
 
-    TRA takes historical prediction erros & latent representation as inputs,
+    TRA takes historical prediction errors & latent representation as inputs,
     then routes the input sample to a specific predictor for training & inference.
 
     Args:

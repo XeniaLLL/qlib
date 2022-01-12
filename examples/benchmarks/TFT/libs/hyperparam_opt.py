@@ -330,7 +330,7 @@ class DistributedHyperparamOptManager(HyperparamOptManager):
         if os.path.exists(self.serialised_ranges_folder):
             df = pd.read_csv(self.serialised_ranges_path, index_col=0)
         else:
-            print("Unable to load - regenerating serach ranges instead")
+            print("Unable to load - regenerating search ranges instead")
             df = self.update_serialised_hyperparam_df()
 
         return df

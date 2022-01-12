@@ -69,7 +69,7 @@ class BaseSignalStrategy(BaseStrategy):
         Return the proportion of your total value you will used in investment.
         Dynamically risk_degree will result in Market timing.
         """
-        # It will use 95% amoutn of your total value by default
+        # It will use 95% amount of your total value by default
         return self.risk_degree
 
 
@@ -124,6 +124,10 @@ class TopkDropoutStrategy(BaseSignalStrategy):
         trade_start_time, trade_end_time = self.trade_calendar.get_step_time(trade_step)
         pred_start_time, pred_end_time = self.trade_calendar.get_step_time(trade_step, shift=1)
         pred_score = self.signal.get_signal(start_time=pred_start_time, end_time=pred_end_time)
+        # NOTE: the current version of topk dropout strategy can't handle pd.DataFrame(multiple signal)
+        # So it only leverage the first col of signal
+        if isinstance(pred_score, pd.DataFrame):
+            pred_score = pred_score.iloc[:, 0]
         if pred_score is None:
             return TradeDecisionWO([], self)
         if self.only_tradable:

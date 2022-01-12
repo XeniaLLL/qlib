@@ -25,6 +25,7 @@ except:
 from tqdm import tqdm
 
 from qlib.utils import get_or_create_path
+from qlib.constant import EPS
 from qlib.log import get_module_logger
 from qlib.model.base import Model
 from qlib.contrib.data.dataset import MTSDatasetH
@@ -233,7 +234,7 @@ class TRAModel(Model):
                     choice_all.append(pd.DataFrame(choice.detach().cpu().numpy(), index=index))
                 decay = self.rho ** (self.global_step // 100)  # decay every 100 steps
                 lamb = 0 if is_pretrain else self.lamb * decay
-                reg = prob.log().mul(P).sum(dim=1).mean()  # train router to predict OT assignment
+                reg = prob.log().mul(P).sum(dim=1).mean()  # train router to predict TO assignment
                 if self._writer is not None and not is_pretrain:
                     self._writer.add_scalar("training/router_loss", -reg.item(), self.global_step)
                     self._writer.add_scalar("training/reg_loss", loss.item(), self.global_step)
@@ -664,7 +665,7 @@ class TRA(nn.Module):
 
     """Temporal Routing Adaptor (TRA)
 
-    TRA takes historical prediction erros & latent representation as inputs,
+    TRA takes historical prediction errors & latent representation as inputs,
     then routes the input sample to a specific predictor for training & inference.
 
     Args:
@@ -792,7 +793,7 @@ def minmax_norm(x):
     xmin = x.min(dim=-1, keepdim=True).values
     xmax = x.max(dim=-1, keepdim=True).values
     mask = (xmin == xmax).squeeze()
-    x = (x - xmin) / (xmax - xmin + 1e-12)
+    x = (x - xmin) / (xmax - xmin + EPS)
     x[mask] = 1
     return x
 

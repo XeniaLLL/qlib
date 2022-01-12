@@ -13,7 +13,7 @@ import requests
 import pandas as pd
 from loguru import logger
 from dateutil.tz import tzlocal
-from qlib.config import REG_CN as REGION_CN
+from qlib.constant import REG_CN as REGION_CN
 
 CUR_DIR = Path(__file__).resolve().parent
 sys.path.append(str(CUR_DIR.parent.parent))
@@ -103,7 +103,7 @@ class FundCollector(BaseCollector):
         error_msg = f"{symbol}-{interval}-{start}-{end}"
 
         try:
-            # TODO: numberOfHistoricalDaysToCrawl should be bigger enouhg
+            # TODO: numberOfHistoricalDaysToCrawl should be bigger enough
             url = INDEX_BENCH_URL.format(
                 index_code=symbol, numberOfHistoricalDaysToCrawl=10000, startDate=start, endDate=end
             )

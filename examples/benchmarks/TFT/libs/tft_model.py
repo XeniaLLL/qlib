@@ -1120,10 +1120,10 @@ class TemporalFusionTransformer:
         Args:
           df: Input dataframe
           return_targets: Whether to also return outputs aligned with predictions to
-            faciliate evaluation
+            facilitate evaluation
 
         Returns:
-          Input dataframe or tuple of (input dataframe, algined output dataframe).
+          Input dataframe or tuple of (input dataframe, aligned output dataframe).
         """
 
         data = self._batch_data(df)
