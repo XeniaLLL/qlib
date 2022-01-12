@@ -53,7 +53,7 @@ class TRAModel(Model):
         self.logger.info("TRA Model...")
 
         self.model = eval(model_type)(**model_config).to(device)
-        if model_init_state:
+        if os.path.exists(model_init_state):
             self.model.load_state_dict(torch.load(model_init_state, map_location="cpu")["model"])
         if freeze_model:
             for param in self.model.parameters():
@@ -226,9 +226,9 @@ class TRAModel(Model):
         self.fitted = True
         self.global_step = -1
 
-        if self.tra.num_states > 1:
-            self.logger.info("init memory...")
-            self.test_epoch(train_set)
+        # if self.tra.num_states > 1: # del by xenia todo recover
+        #     self.logger.info("init memory...")
+        #     self.test_epoch(train_set)
 
         for epoch in range(self.n_epochs):
             self.logger.info("Epoch %d:", epoch)

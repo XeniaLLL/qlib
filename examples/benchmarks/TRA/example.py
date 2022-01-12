@@ -34,6 +34,6 @@ if __name__ == "__main__":
     # set params from cmd
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument("--seed", type=int, default=1000, help="random seed")
-    parser.add_argument("--config_file", type=str, default="configs/config_alstm.yaml", help="config file")
+    parser.add_argument("--config_file", type=str, default="configs/config_alstm_tra.yaml", help="config file")
     args = parser.parse_args()
     main(**vars(args))

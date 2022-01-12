@@ -7,8 +7,8 @@ data_loader_config: &data_loader_config
   module_path: qlib.data.dataset.loader
   kwargs:
     config:
-      feature: data/feature.pkl
-      label: data/label.pkl
+      feature: data/dataset2/feature.pkl
+      label: data/dataset2/label.pkl
 
 model_config: &model_config
   input_size: 16
@@ -32,10 +32,11 @@ task:
     module_path: src/model.py
     kwargs:
       lr: 0.0001
-      n_epochs: 500
+      n_epochs: 3  # 500 #00
       max_steps_per_epoch: 100
       early_stop: 20
       seed: 1000
+      optimizer: sgd
       logdir: output/test/alstm_tra
       model_type: LSTM
       model_config: *model_config
@@ -60,4 +61,4 @@ task:
       seq_len: 60
       horizon: 21
       num_states: *num_states
-      batch_size: 1024
+      batch_size: 10 #24

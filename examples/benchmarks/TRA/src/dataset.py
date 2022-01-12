@@ -27,22 +27,23 @@ def _create_ts_slices(index, seq_len):
         index (pd.MultiIndex): pandas multiindex with <instrument, datetime> order
         seq_len (int): sequence length
     """
-    assert index.is_lexsorted(), "index should be sorted"
+    assert index.is_monotonic_increasing, "index should be sorted"
+    # assert index.is_lexsorted(), "index should be sorted"
 
     # number of dates for each code
-    sample_count_by_codes = pd.Series(0, index=index).groupby(level=0).size().values
+    sample_count_by_codes = pd.Series(0, index=index).groupby(level=0).size().values # 统计每股票的交易日数目
 
     # start_index for each code
-    start_index_of_codes = np.roll(np.cumsum(sample_count_by_codes), 1)
-    start_index_of_codes[0] = 0
+    start_index_of_codes = np.roll(np.cumsum(sample_count_by_codes), 1) # 滚动进行累加-->找到每股票开始的地方
+    start_index_of_codes[0] = 0 # 因为滚动会把最后的结果赋值给第一个,所以对其清零作为起始位置--> default:0
 
     # all the [start, stop) indices of features
     # features btw [start, stop) are used to predict the `stop - 1` label
     slices = []
-    for cur_loc, cur_cnt in zip(start_index_of_codes, sample_count_by_codes):
-        for stop in range(1, cur_cnt + 1):
+    for cur_loc, cur_cnt in zip(start_index_of_codes, sample_count_by_codes): # 一个股票开始的时间,交易时间数目
+        for stop in range(1, cur_cnt + 1): # stop timestamp
             end = cur_loc + stop
-            start = max(end - seq_len, 0)
+            start = max(end - seq_len, cur_loc) # 结束日期不到的算0
             slices.append(slice(start, end))
     slices = np.array(slices)
 
@@ -118,7 +119,7 @@ class MTSDatasetH(DatasetH):
         # change index to <code, date>
         # NOTE: we will use inplace sort to reduce memory use
         df = self.handler._data
-        df.index = df.index.swaplevel()
+        df.index = df.index.swaplevel() # swap from (code, tiemstamp) to (timestamp, code)
         df.sort_index(inplace=True)
 
         self._data = df["feature"].values.astype("float32")
@@ -141,10 +142,10 @@ class MTSDatasetH(DatasetH):
         self.batch_slices = _create_ts_slices(self._index, self.seq_len)
 
         # create daily slices
-        index = [slc.stop - 1 for slc in self.batch_slices]
-        act_index = self.restore_index(index)
-        daily_slices = {date: [] for date in sorted(act_index.unique(level=1))}
-        for i, (code, date) in enumerate(act_index):
+        index = [slc.stop - 1 for slc in self.batch_slices] # 每个slice结束的地方作为股票的一个index
+        act_index = self.restore_index(index) # 依据编码code*dates_of_code+ ? date 找到对应的index
+        daily_slices = {date: [] for date in sorted(act_index.unique(level=1))} # 训练集的交易日信息
+        for i, (code, date) in enumerate(act_index): #每个交易日有的slice
             daily_slices[date].append(self.batch_slices[i])
         self.daily_slices = list(daily_slices.values())
 

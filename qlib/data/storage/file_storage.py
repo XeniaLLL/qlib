@@ -63,7 +63,8 @@ class FileStorageMixin:
 
 class FileCalendarStorage(FileStorageMixin, CalendarStorage):
     def __init__(self, freq: str, future: bool, provider_uri: dict, **kwargs):
-        super(FileCalendarStorage, self).__init__(freq, future, **kwargs)
+        CalendarStorage.__init__(self, freq, future, **kwargs)
+        # super(FileCalendarStorage, self).__init__(freq, future, **kwargs)
         self.future = future
         self.provider_uri = C.DataPathManager.format_provider_uri(provider_uri)
         self.enable_read_cache = True  # TODO: make it configurable
