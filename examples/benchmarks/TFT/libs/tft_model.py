@@ -342,7 +342,7 @@ class TFTDataCache:
 
     @classmethod
     def contains(cls, key):
-        """Retuns boolean indicating whether key is present in cache."""
+        """Returns boolean indicating whether key is present in cache."""
 
         return key in cls._data_cache
 
