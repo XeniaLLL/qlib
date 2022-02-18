@@ -39,3 +39,4 @@ tags
 *.swp
 
 ./pretrain
+/examples/benchmarks/TRA/output/

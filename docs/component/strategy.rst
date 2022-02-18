@@ -22,13 +22,15 @@ Base Class & Interface
 BaseStrategy
 ------------------
 
-Qlib provides a base class ``qlib.contrib.strategy.BaseStrategy``. All strategy classes need to inherit the base class and implement its interface.
+Qlib provides a base class ``qlib.strategy.base.BaseStrategy``. All strategy classes need to inherit the base class and implement its interface.
 
 - `get_risk_degree`
     Return the proportion of your total value you will use in investment. Dynamically risk_degree will result in Market timing.
 
 - `generate_order_list`
     Return the order list.
+    The frequency to call this method depends on the executor frequency("time_per_step"="day" by default). But the trading frequency can be decided by users' implementation.
+    For example, if the user wants to trading in weekly while the `time_per_step` is "day" in executor, user can return non-empty TradeDecision weekly(otherwise return empty like `this <https://github.com/microsoft/qlib/blob/main/qlib/contrib/strategy/signal_strategy.py#L132>`_ ).
 
 Users can inherit `BaseStrategy` to customize their strategy class.
 
@@ -124,7 +126,9 @@ A prediction sample is shown as follows.
 
 Normally, the prediction score is the output of the models. But some models are learned from a label with a different scale. So the scale of the prediction score may be different from your expectation(e.g. the return of instruments).
 
-Qlib didn't add a step to scale the prediction score to a unified scale. Because not every trading strategy cares about the scale(e.g. TopkDropoutStrategy only cares about the order).  So the strategy is responsible for rescaling the prediction score(e.g. some portfolio-optimization-based strategies may require a meaningful scale).
+Qlib didn't add a step to scale the prediction score to a unified scale due to the following reasons.
+- Because not every trading strategy cares about the scale(e.g. TopkDropoutStrategy only cares about the order).  So the strategy is responsible for rescaling the prediction score(e.g. some portfolio-optimization-based strategies may require a meaningful scale).
+- The model has the flexibility to define the target, loss, and data processing. So we don't think there is a silver bullet to rescale it back directly barely based on the model's outputs. If you want to scale it back to some meaningful values(e.g. stock returns.), an intuitive solution is to create a regression model for the model's recent outputs and your recent target values.
 
 Running backtest
 -----------------
@@ -190,6 +194,14 @@ Running backtest
         qlib.init(provider_uri=<qlib data dir>)
 
         CSI300_BENCH = "SH000300"
+        # Benchmark is for calculating the excess return of your strategy.
+        # Its data format will be like **ONE normal instrument**. 
+        # For example, you can query its data with the code below
+        # `D.features(["SH000300"], ["$close"], start_time='2010-01-01', end_time='2017-12-31', freq='day')`
+        # It is different from the argument `market`, which indicates a universe of stocks (e.g. **A SET** of stocks like csi300)
+        # For example, you can query all data from a stock market with the code below.
+        # ` D.features(D.instruments(market='csi300'), ["$close"], start_time='2010-01-01', end_time='2017-12-31', freq='day')`
+
         FREQ = "day"
         STRATEGY_CONFIG = {
             "topk": 50,

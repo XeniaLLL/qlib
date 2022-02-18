@@ -3,7 +3,6 @@
 import os
 import copy
 import warnings
-import cvxpy as cp
 import numpy as np
 import pandas as pd
 
@@ -15,11 +14,10 @@ from qlib.model.base import BaseModel
 from qlib.strategy.base import BaseStrategy
 from qlib.backtest.position import Position
 from qlib.backtest.signal import Signal, create_signal_from
-from qlib.backtest.decision import Order, BaseTradeDecision, OrderDir, TradeDecisionWO
+from qlib.backtest.decision import Order, OrderDir, TradeDecisionWO
 from qlib.log import get_module_logger
 from qlib.utils import get_pre_trading_date, load_dataset
-from qlib.utils.resam import resam_ts_data
-from qlib.contrib.strategy.order_generator import OrderGenWInteract, OrderGenWOInteract
+from qlib.contrib.strategy.order_generator import OrderGenWOInteract
 from qlib.contrib.strategy.optimizer import EnhancedIndexingOptimizer
 
 
@@ -69,7 +67,7 @@ class BaseSignalStrategy(BaseStrategy):
         Return the proportion of your total value you will used in investment.
         Dynamically risk_degree will result in Market timing.
         """
-        # It will use 95% amoutn of your total value by default
+        # It will use 95% amount of your total value by default
         return self.risk_degree
 
 
@@ -124,6 +122,10 @@ class TopkDropoutStrategy(BaseSignalStrategy):
         trade_start_time, trade_end_time = self.trade_calendar.get_step_time(trade_step)
         pred_start_time, pred_end_time = self.trade_calendar.get_step_time(trade_step, shift=1)
         pred_score = self.signal.get_signal(start_time=pred_start_time, end_time=pred_end_time)
+        # NOTE: the current version of topk dropout strategy can't handle pd.DataFrame(multiple signal)
+        # So it only leverage the first col of signal
+        if isinstance(pred_score, pd.DataFrame):
+            pred_score = pred_score.iloc[:, 0]
         if pred_score is None:
             return TradeDecisionWO([], self)
         if self.only_tradable:
@@ -480,7 +482,7 @@ class EnhancedIndexingStrategy(WeightStrategyBase):
             r=score,
             F=factor_exp,
             cov_b=factor_cov,
-            var_u=specific_risk ** 2,
+            var_u=specific_risk**2,
             w0=cur_weight,
             wb=bench_weight,
             mfh=mask_force_hold,
